@@ -66,9 +66,13 @@ function appath_ut::test_helioflux_aplib_works
     apPath, /reset, /unit, /hfap
 
     ; Attempt to compile some APlib code
-    resolve_routine, ['rotate180','apstack__define','apconsole__define', $
+    routines = ['rotate180','apstack__define','apconsole__define', $
             'apfitsmanager__define', 'apsetcsi', 'minformat', 'apintersect', $
-            'apmean', 'apuisunscaler__define'], /either, /no_recompile
+            'apmean', 'apuisunscaler__define','readxyo']
+    
+    foreach r, routines do $ 
+        assert, strpos(!path, file_dirname((routine_info(r,/source)).path) + $
+                ':') ne -1, 'Required directory not in path'
 
     return, 1
 end
@@ -110,7 +114,6 @@ function appath_ut::test_gitap_core_preferred_over_old_hfap_core_1
     apPath, /reset, /unit, /pfss
     apPath, /hfap
     
-    resolve_routine, 'apContainer__define'
     i = routine_info('apContainer__define', /source)
     assert, i.path eq '/Users/aram/git/APlib/core/apcontainer__define.pro', $
             'Got apContainer from wrong place'
@@ -118,7 +121,7 @@ function appath_ut::test_gitap_core_preferred_over_old_hfap_core_1
     return, 1
 end
 
-function appath_ut::test_no_tecurisve_path_adding
+function appath_ut::test_no_recurisve_path_adding
     compile_opt idl2
     
     apPath, /reset, /unit, /hfap

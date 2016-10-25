@@ -15,6 +15,7 @@
 ;      Set this keyword to ininitialize paths for HelioFlux's APlib
 ;-=============================================================================
 pro apPath, RESET=resetKW, UNIT=unitKW, PFSS=pfssKW, HFAP=hfapKW
+
     old_root = expand_path('~/Dropbox/IDL',/all_dirs)
     new_root = expand_path('~/git',/all_dirs)
     unit_paths = [expand_path('+~/git/mgunit/src',/array), $
@@ -32,7 +33,8 @@ pro apPath, RESET=resetKW, UNIT=unitKW, PFSS=pfssKW, HFAP=hfapKW
             filepath('fits',root=hfap_root), $
             filepath('formats',root=hfap_root), $
             filepath('operation',root=hfap_root), $
-            filepath('ui',root=hfap_root)]
+            filepath('ui',root=hfap_root), $
+            filepath('Utilities',root=old_root,sub='AH_HelioViewer')]
     
     add_paths = []
 
@@ -54,7 +56,7 @@ pro apPath, RESET=resetKW, UNIT=unitKW, PFSS=pfssKW, HFAP=hfapKW
     ; Add the paths to the !path system variable
     if n_elements(add_paths) ne 0 then begin
         for i=n_elements(add_paths)-1, 0, -1 do begin
-            if strpos(!path, add_paths[i]) eq -1 then $
+            if strpos(!path, add_paths[i]+':') eq -1 then $
                 !path = add_paths[i] + ':' + !path
         endfor
     endif
