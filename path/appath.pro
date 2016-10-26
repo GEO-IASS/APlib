@@ -22,6 +22,10 @@
 pro apPath, RESET=resetKW, UNIT=unitKW, PFSS=pfssKW, HFAP=hfapKW, ALL=allKW, $
             OLD_CORE=oldcoreKW
 
+    ; Use the appath common block to implement reset functionality
+    common appath, old_path
+    if n_elements(old_path) eq 0 then old_path = !path
+
     old_root = expand_path('~/Dropbox/IDL',/all_dirs)
     new_root = expand_path('~/git',/all_dirs)
     unit_paths = [expand_path('+~/git/mgunit/src',/array), $
@@ -46,7 +50,8 @@ pro apPath, RESET=resetKW, UNIT=unitKW, PFSS=pfssKW, HFAP=hfapKW, ALL=allKW, $
     add_paths = []
 
     if keyword_set(resetKW) then begin
-        ssw_path, /restore, /quiet 
+        ; Restore from the common block
+        !path = old_path
     endif
     if keyword_set(unitKW) or keyword_set(allKW) then begin
         add_paths = [add_paths, unit_paths]
@@ -60,7 +65,6 @@ pro apPath, RESET=resetKW, UNIT=unitKW, PFSS=pfssKW, HFAP=hfapKW, ALL=allKW, $
     if keyword_set(hfapKW) or keyword_set(allKW) then begin
         add_paths = [add_paths, catalyst_paths]
         add_paths = [add_paths, coyote_paths]
-        add_paths = [add_paths, pfss_paths]
         add_paths = [add_paths, hfap_paths]
     endif
     
