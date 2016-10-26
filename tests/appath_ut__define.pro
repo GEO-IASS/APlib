@@ -52,10 +52,17 @@ function appath_ut::test_pfss_works
     apPath, /reset, /unit, /pfss
 
     ; Attempt to compile some PFSS code
-    resolve_routine, ['pfss__define','pfss_b_eff','lat2theta', $
+    routines = ['pfss__define','pfss_b_eff','lat2theta', $
             'aparrayintercepts','apcontainer__define', $
-            'apdictionary__define'], /either, /no_recompile
+            'apdictionary__define']
     
+
+    foreach r, routines do begin
+        findpro, r, dirlist=d, /noprint
+        assert, d[0] ne '', 'No containing directory found: ' + r
+        assert, n_elements(d) lt 2, 'Too many directories found: ' + r
+    endforeach
+
     return, 1
 end
 
@@ -67,13 +74,13 @@ function appath_ut::test_helioflux_aplib_works
 
     ; Attempt to compile some APlib code
     routines = ['rotate180','apstack__define','apconsole__define', $
-            'apfitsmanager__define', 'apsetcsi', 'minformat', 'apintersect', $
-            'apmean', 'apuisunscaler__define','readxyo']
-    
-    foreach r, routines do $ 
-        assert, strpos(!path, file_dirname((routine_info(r,/source)).path) + $
-                ':') ne -1, 'Required directory not in path'
-
+                'apfitsmanager__define', 'apuisunscaler__define', $
+                'apsetcsi', 'minformat', 'apintersect', 'apmean','readxyo']
+    foreach r, routines do begin 
+        findpro, r, dirlist=d, /noprint
+        assert, d[0] ne '', 'No containing directory found: ' + r
+        assert, n_elements(d) lt 2, 'Too many directories found: ' + r
+    endforeach
     return, 1
 end
 
@@ -97,26 +104,44 @@ function appath_ut::test_hfap_reads_its_own_core
 
     ; Load both git APlib and HelioFlux's APLib paths
     apPath, /reset, /unit, /hfap
+    
+    findpro, 'apcontainer__define', dirlist=d, /noprint
 
-    resolve_routine, 'apContainer__define'
-    i = routine_info('apContainer__define', /source)
-    assert, i.path eq '/Users/aram/Dropbox/IDL/AH_HelioViewer/APlib/core/' + $
-            'apcontainer__define.pro', $
+    assert, d[0] ne '' && d eq $
+            '/Users/aram/Dropbox/IDL/AH_HelioViewer/APlib/core/', $
             'HFAP got apContainer from somewehere unexpected'
     
     return, 1
 end
 
-function appath_ut::test_gitap_core_preferred_over_old_hfap_core_1
+function appath_ut::test_gitap_core_preferred_over_old_hfap_core
     compile_opt idl2
 
     ; Load both git APlib and HelioFlux's APLib paths
     apPath, /reset, /unit, /pfss
     apPath, /hfap
-    
-    i = routine_info('apContainer__define', /source)
-    assert, i.path eq '/Users/aram/git/APlib/core/apcontainer__define.pro', $
-            'Got apContainer from wrong place'
+
+    findpro, 'apcontainer__define', dirlist=d, /noprint
+    assert, n_elements(d) gt 0, 'No core in path'
+    assert, n_elements(d) lt 2, 'Both old and new cores in path'
+    assert, d[0] eq '/Users/aram/git/APlib/core/', $
+            'Used old core instead of new'
+
+    return, 1
+end
+
+function appath_ut::test_old_core_keyword_works
+    compile_opt idl2
+
+    ; Load both git APlib and HelioFlux's APLib paths with the old_core keyword
+    apPath, /reset, /unit, /hfap
+    apPath, /pfss, /old_core
+
+    findpro, 'apcontainer__define', dirlist=d, /noprint
+    assert, n_elements(d) gt 0, 'No core in path'
+    assert, n_elements(d) lt 2, 'Both old and new cores in path'
+    assert, d[0] eq '/Users/aram/Dropbox/IDL/AH_HelioViewer/APlib/core/', $
+            'Used new core instead of old'
 
     return, 1
 end
@@ -127,6 +152,14 @@ function appath_ut::test_no_recurisve_path_adding
     apPath, /reset, /unit, /hfap
     assert, strpos(!path,'recursion_test') eq -1, 'Recursive path loading'
     
+    return, 1
+end
+
+function appath_ut::test_all_keyword_works
+    compile_opt idl2
+
+    apPath, /all
+
     return, 1
 end
 

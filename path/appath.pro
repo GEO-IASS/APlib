@@ -13,8 +13,14 @@
 ;      Set this keyword to initialize paths for pfss_addons
 ;    HFAP : optional, type=boolean
 ;      Set this keyword to ininitialize paths for HelioFlux's APlib
+;    ALL : optional, type=boolean
+;      Set this keyword to initialize all paths that make sense
+;    OLD_CORE : optional, type=boolean
+;      Set this keyword to use the old APlib core objects rather than new
+;      ones. Default is to use the new core.
 ;-=============================================================================
-pro apPath, RESET=resetKW, UNIT=unitKW, PFSS=pfssKW, HFAP=hfapKW
+pro apPath, RESET=resetKW, UNIT=unitKW, PFSS=pfssKW, HFAP=hfapKW, ALL=allKW, $
+            OLD_CORE=oldcoreKW
 
     old_root = expand_path('~/Dropbox/IDL',/all_dirs)
     new_root = expand_path('~/git',/all_dirs)
@@ -23,7 +29,8 @@ pro apPath, RESET=resetKW, UNIT=unitKW, PFSS=pfssKW, HFAP=hfapKW
             filepath('tests',root=new_root,sub='APlib'), $
             filepath('tests',root=new_root,sub='pfss_addons')]
     coyote_paths = expand_path('+~/IDL/coyote',/array)
-    pfss_root = filepath('pfss_addons',root=new_root,sub='pfss_adons')
+    catalyst_paths = expand_path('+~/IDL/catalyst',/array)
+    pfss_root = filepath('pfss_addons',root=new_root,sub='pfss_addons')
     pfss_paths =  [pfss_root, filepath('lib',root=pfss_root), $
             filepath('core',root=new_root,sub='APlib')]
     hfap_root = filepath('APlib',root=old_root,sub='AH_HelioViewer')
@@ -41,15 +48,19 @@ pro apPath, RESET=resetKW, UNIT=unitKW, PFSS=pfssKW, HFAP=hfapKW
     if keyword_set(resetKW) then begin
         ssw_path, /restore, /quiet 
     endif
-    if keyword_set(unitKW) then begin
+    if keyword_set(unitKW) or keyword_set(allKW) then begin
         add_paths = [add_paths, unit_paths]
     endif
-    if keyword_set(pfssKW) then begin
+    if keyword_set(pfssKW) or keyword_set(allKW) then begin
         ssw_path, /pfss, /quiet
+        add_paths = [add_paths, catalyst_paths]
         add_paths = [add_paths, coyote_paths]
         add_paths = [add_paths, pfss_paths]
     endif
-    if keyword_set(hfapKW) then begin
+    if keyword_set(hfapKW) or keyword_set(allKW) then begin
+        add_paths = [add_paths, catalyst_paths]
+        add_paths = [add_paths, coyote_paths]
+        add_paths = [add_paths, pfss_paths]
         add_paths = [add_paths, hfap_paths]
     endif
     
@@ -60,16 +71,19 @@ pro apPath, RESET=resetKW, UNIT=unitKW, PFSS=pfssKW, HFAP=hfapKW
                 !path = add_paths[i] + ':' + !path
         endfor
     endif
-
+    
     ; Check for conflicting APlib core definitions
     new_core = filepath('core',root=new_root,sub='APlib')
     old_core = filepath('core',root=old_root, $
                         sub=['AH_HelioViewer','APlib'])
     new_pos = strpos(!path, new_core)
     old_pos = strpos(!path, old_core)
-    if new_pos ne -1 && old_pos ne -1 then $
-            !path = strmid(!path, 0, old_pos) + $
-            strmid(!path, old_pos + strlen(old_core)+1)
-    
+    if new_pos ne -1 && old_pos ne -1 then begin
+        replace_pos = keyword_set(oldcoreKW) ? new_pos : old_pos
+        replace_len = keyword_set(oldcoreKW) ? $
+                strlen(new_core) : strlen(old_core)
+        !path = strmid(!path, 0, replace_pos) + $
+        strmid(!path, replace_pos + replace_len+1)
+    endif
 end
 
