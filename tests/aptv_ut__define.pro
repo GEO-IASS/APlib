@@ -23,21 +23,6 @@ function aptv_ut::test_zero_args_raises_error
     return, 0
 end
 
-
-function aptv_ut::test_small_image_shows_up
-    compile_opt idl2
-    
-    s = byte([[100,200,100],[200,100,200],[100,200,100]])
-
-    aptv, bytscl(s)
-
-    print, 'Has a tiny 3px by 3px image been displayed? (y/n)'
-    response = get_kbrd()
-    assert, response eq 'y', 'No image displayed'
-
-    return, 1
-end
-
 function aptv_ut::test_medium_image_shows_up
     compile_opt idl2
 
@@ -50,6 +35,20 @@ function aptv_ut::test_medium_image_shows_up
     response = get_kbrd()
     assert, response eq 'y', 'No image displayed'
 
+    return, 1
+end
+
+function aptv_ut::test_color_works
+    compile_opt idl2
+
+    file = filepath('rose.jpg', sub = ['examples', 'data'])
+    rose = read_image(file)
+    aptv, rose
+
+    print, 'Has a color picture of a rose been displayed? (y/n)'
+    response = get_kbrd()
+    assert, response eq 'y', 'No image displayed'
+    
     return, 1
 end
 
