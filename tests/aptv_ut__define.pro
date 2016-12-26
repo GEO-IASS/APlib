@@ -52,6 +52,39 @@ function aptv_ut::test_color_works
     return, 1
 end
 
+function aptv_ut::test_no_rare_display_defect
+    compile_opt idl2
+
+
+    file = filepath('nyny.dat', sub = ['examples', 'data'])
+    nyny = read_binary(file, data_dims = [768, 512])
+
+    for i=1, 100 do begin
+        aptv, nyny
+    endfor
+
+    print, 'Have you seen defects or artifacts in any pictures displayed? (y/n)'
+    response = get_kbrd()
+    assert, response eq 'n', 'Defects detected'
+
+    return, 1
+end
+
+function aptv_ut::test_binary_color_works_when_scaled_to_byte
+    compile_opt idl2
+
+    file = filepath('nyny.dat', sub = ['examples', 'data'])
+    nyny = read_binary(file, data_dims = [768, 512])
+    
+    aptv, bytscl(nyny), binary_color=[50,50,200]
+
+    print, 'Has a picture of New York shaded bluish been displayed? (y/n)'
+    response = get_kbrd()
+    assert, response eq 'y', 'No image displayed'
+
+    return, 1
+end
+
 pro aptv_ut__define
     class = { aptv_ut, INHERITS MGutTestCase }
 end

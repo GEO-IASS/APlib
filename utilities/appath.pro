@@ -18,9 +18,11 @@
 ;    OLD_CORE : optional, type=boolean
 ;      Set this keyword to use the old APlib core objects rather than new
 ;      ones. Default is to use the new core.
+;    BEFF : optional, type=boolean
+;      Set this keyword to include Georgeoulis' B_EFF calculation code.
 ;-=============================================================================
 pro apPath, RESET=resetKW, UNIT=unitKW, PFSS=pfssKW, HFAP=hfapKW, ALL=allKW, $
-            OLD_CORE=oldcoreKW
+            OLD_CORE=oldcoreKW, BEFF=beff
 
     ; Use the appath common block to implement reset functionality
     common appath, old_path
@@ -46,7 +48,8 @@ pro apPath, RESET=resetKW, UNIT=unitKW, PFSS=pfssKW, HFAP=hfapKW, ALL=allKW, $
             filepath('operation',root=hfap_root), $
             filepath('ui',root=hfap_root), $
             filepath('Utilities',root=old_root,sub='AH_HelioViewer')]
-    
+    beff_paths = filepath('Beff_calculation',root=new_root)
+
     add_paths = []
 
     if keyword_set(resetKW) then begin
@@ -66,6 +69,9 @@ pro apPath, RESET=resetKW, UNIT=unitKW, PFSS=pfssKW, HFAP=hfapKW, ALL=allKW, $
         add_paths = [add_paths, catalyst_paths]
         add_paths = [add_paths, coyote_paths]
         add_paths = [add_paths, hfap_paths]
+    endif
+    if keyword_set(beff) then begin
+        add_paths = [add_paths, beff_paths]
     endif
     
     ; Add the paths to the !path system variable
